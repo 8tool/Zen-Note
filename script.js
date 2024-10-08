@@ -82,58 +82,65 @@ function toggleDarkMode() {
     darkModeToggle.textContent = document.body.classList.contains('dark-mode') ? '☀️' : '🌙';
 }
 
+const image = new Image();
+image.src = './light-mode.png';
+const image_dark = new Image(); 
+image_dark.src = './dark-mode.png'  ;
+
 function createSnapshot(entry) {
     const canvas = snapshotCanvas;
     const ctx = canvas.getContext('2d');
-    const width = 500;
-    const height = 300;
+    const width = 626;
+    const height = 626;
     canvas.width = width;
     canvas.height = height;
 
-    // Create gradient background
-    const gradient = ctx.createLinearGradient(0, 0, width, height);
-    gradient.addColorStop(0, '#1a2a6c');
-    gradient.addColorStop(0.5, '#b21f1f');
-    gradient.addColorStop(1, '#fdbb2d');
-    ctx.fillStyle = gradient;
-    ctx.fillRect(0, 0, width, height);
+    // Load the background image
+    const image = new Image();
+    image.src = './light-mode.png'; // Replace with the path to your image
 
-    // Add glassmorphism effect
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
-    ctx.fillRect(20, 20, width - 40, height - 40);
+    image.onload = function() {
+        // Draw the image as the background
+        ctx.drawImage(image, 0, 0, width, height);
 
-    // Add text
-    ctx.fillStyle = '#ffffff';
-    ctx.font = '16px Arial';
-    ctx.fillText(entry.date, 30, 50);
+        // Add glassmorphism effect (optional)
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
+        ctx.fillRect(20, 20, width - 40, height - 40);
 
-    ctx.fillStyle = '#ffff00';
-    ctx.font = '20px Arial';
-    const words = entry.content.split(' ');
-    let line = '';
-    let y = 80;
-    for (let i = 0; i < words.length; i++) {
-        const testLine = line + words[i] + ' ';
-        const metrics = ctx.measureText(testLine);
-        if (metrics.width > width - 60 && i > 0) {
-            ctx.fillText(line, 30, y);
-            line = words[i] + ' ';
-            y += 30;
-        } else {
-            line = testLine;
+        // Add date text
+        ctx.fillStyle = '#ffffff';
+        ctx.font = '16px Arial';
+        ctx.fillText(entry.date, 30, 50);
+
+        // Add entry content text
+        ctx.fillStyle = '#000000';
+        ctx.font = '20px Arial';
+        const words = entry.content.split(' ');
+        let line = '';
+        let y = 80;
+        for (let i = 0; i < words.length; i++) {
+            const testLine = line + words[i] + ' ';
+            const metrics = ctx.measureText(testLine);
+            if (metrics.width > width - 60 && i > 0) {
+                ctx.fillText(line, 30, y);
+                line = words[i] + ' ';
+                y += 30;
+            } else {
+                line = testLine;
+            }
         }
-    }
-    ctx.fillText(line, 30, y);
+        ctx.fillText(line, 30, y);
 
-    // Add website name with glow effect
-    ctx.fillStyle = '#ffffff';
-    ctx.font = '16px Arial';
-    ctx.shadowColor = '#ffffff';
-    ctx.shadowBlur = 10;
-    ctx.fillText('Made with Zen Note', width - 180, height - 20);
-    ctx.shadowBlur = 0;
+        // Add website name with glow effect
+        ctx.fillStyle = '#000000';
+        ctx.font = '16px Arial';
+        ctx.shadowColor = '#000000';
+        ctx.shadowBlur = 10;
+        ctx.fillText('Made with Zen Note', width - 180, height - 20);
+        ctx.shadowBlur = 0;
 
-    snapshotModal.style.display = 'block';
+        snapshotModal.style.display = 'block';
+    };
 }
 
 document.addEventListener("DOMContentLoaded", function() {
