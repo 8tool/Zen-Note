@@ -10,6 +10,9 @@
     --button-hover-light: #5DA2D5;
     --button-hover-dark: #124E66;
 }
+#snapshotCanvas {
+    border: 1px solid #ccc; /* Optional: add a border for visual separation */
+}
 
 body {
     font-family: 'Arial', sans-serif;

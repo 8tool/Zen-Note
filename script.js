@@ -82,66 +82,112 @@ function toggleDarkMode() {
     darkModeToggle.textContent = document.body.classList.contains('dark-mode') ? '☀️' : '🌙';
 }
 
-const image = new Image();
-image.src = './light-mode.png';
-const image_dark = new Image(); 
-image_dark.src = './dark-mode.png'  ;
-
 function createSnapshot(entry) {
     const canvas = snapshotCanvas;
     const ctx = canvas.getContext('2d');
-    const width = 626;
-    const height = 626;
+    const width = 500;
+    const height = 300;
     canvas.width = width;
     canvas.height = height;
 
-    // Load the background image
-    const image = new Image();
-    image.src = './light-mode.png'; // Replace with the path to your image
+    // Create a white gradient background
+    const gradient = ctx.createLinearGradient(0, 0, width, height);
+    gradient.addColorStop(0, 'rgba(255, 255, 255, 1)'); // Top is white
+    gradient.addColorStop(1, 'rgba(230, 230, 230, 1)'); // Bottom is light gray
+    ctx.fillStyle = gradient;
+    ctx.fillRect(0, 0, width, height);
 
-    image.onload = function() {
-        // Draw the image as the background
-        ctx.drawImage(image, 0, 0, width, height);
+    // Draw colorful blobs
+    const blobCount = 10; // Number of blobs
+    for (let i = 0; i < blobCount; i++) {
+        const x = Math.random() * width; // Random x position
+        const y = Math.random() * height; // Random y position
+        const radius = Math.random() * 40 + 20; // Random radius between 20 and 60
 
-        // Add glassmorphism effect (optional)
-        ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
-        ctx.fillRect(20, 20, width - 40, height - 40);
+        // Random color for each blob
+        const color = `hsl(${Math.random() * 360}, 100%, 50%)`; // HSL color for vibrant colors
 
-        // Add date text
-        ctx.fillStyle = '#ffffff';
-        ctx.font = '16px Arial';
-        ctx.fillText(entry.date, 30, 50);
+        ctx.beginPath();
+        ctx.arc(x, y, radius, 0, Math.PI * 2); // Draw a circle
+        ctx.fillStyle = color; // Set the fill color to the random color
+        ctx.fill(); // Fill the circle
+        ctx.closePath();
+    }
 
-        // Add entry content text
-        ctx.fillStyle = '#000000';
-        ctx.font = '20px Arial';
-        const words = entry.content.split(' ');
-        let line = '';
-        let y = 80;
-        for (let i = 0; i < words.length; i++) {
-            const testLine = line + words[i] + ' ';
-            const metrics = ctx.measureText(testLine);
-            if (metrics.width > width - 60 && i > 0) {
-                ctx.fillText(line, 30, y);
-                line = words[i] + ' ';
-                y += 30;
-            } else {
-                line = testLine;
-            }
+    // Create a blurry effect by drawing a rectangle with a blur effect
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.5)'; // Semi-transparent white
+    ctx.fillRect(0, 0, width, height); // Draw a semi-transparent overlay
+
+    // Set initial font size for text
+    let fontSize = 20; // Start with a larger font size
+    ctx.fillStyle = '#000000'; // Black color for text
+    ctx.font = `${fontSize}px Arial`;
+    ctx.fillText(entry.date, 30, 50);
+
+    ctx.fillStyle = '#ff0000'; // Set color for main content text
+    const words = entry.content.split(' ');
+    let line = '';
+    let y = 80;
+    const lineHeight = 30; // Fixed line height
+    const maxHeight = height - 100; // Maximum height for text area
+    let lineCount = 0;
+
+    // Measure text to see how many lines we need
+    for (let i = 0; i < words.length; i++) {
+        const testLine = line + words[i] + ' ';
+        const metrics = ctx.measureText(testLine);
+        if (metrics.width > width - 60 && i > 0) {
+            lineCount++;
+            line = words[i] + ' ';
+        } else {
+            line = testLine;
         }
-        ctx.fillText(line, 30, y);
+    }
 
-        // Add website name with glow effect
-        ctx.fillStyle = '#000000';
-        ctx.font = '16px Arial';
-        ctx.shadowColor = '#000000';
-        ctx.shadowBlur = 10;
-        ctx.fillText('Made with Zen Note', width - 180, height - 20);
-        ctx.shadowBlur = 0;
+    // Calculate total height based on line count
+    let totalHeight = lineCount * lineHeight + lineHeight; // + lineHeight for the last line
 
-        snapshotModal.style.display = 'block';
-    };
+    // Adjust font size if total height exceeds maxHeight
+    while (totalHeight > maxHeight && fontSize > 10) { // Prevent font size going below 10
+        fontSize -= 2; // Decrease font size
+        ctx.font = `${fontSize}px Arial`; // Update font in context
+        totalHeight = lineCount * lineHeight + lineHeight; // Recalculate total height
+    }
+
+    // Reset y position for drawing text
+    y = 80;
+    line = '';
+
+    // Draw text
+    for (let i = 0; i < words.length; i++) {
+        const testLine = line + words[i] + ' ';
+        const metrics = ctx.measureText(testLine);
+        if (metrics.width > width - 60 && i > 0) {
+            ctx.fillText(line, 30, y);
+            line = words[i] + ' ';
+            y += lineHeight;
+        } else {
+            line = testLine;
+        }
+
+        // Check if y exceeds canvas height
+        if (y > height - 60) {
+            break; // Stop rendering if the text exceeds the canvas height
+        }
+    }
+    ctx.fillText(line, 30, y);
+
+    // Add website name with glow effect
+    ctx.fillStyle = '#000000'; // Black color for text
+    ctx.font = '16px Arial';
+    ctx.shadowColor = '#ffffff';
+    ctx.shadowBlur = 10;
+    ctx.fillText('Made with Zen Note', width - 180, height - 20);
+    ctx.shadowBlur = 0;
+
+    snapshotModal.style.display = 'block';
 }
+
 
 document.addEventListener("DOMContentLoaded", function() {
     const fakeTextarea = document.getElementById("fake-textarea");
