@@ -17,7 +17,7 @@ function saveEntries() {
 function addEntry(content) {
     const newEntry = {
         id: Date.now(),
-        content: content,
+        content: content.replaceAll("\n", "<br>"),
         date: new Date().toLocaleDateString()
     };
     entries.unshift(newEntry);
@@ -50,6 +50,33 @@ function deleteEntry(id) {
     });
 }
 
+function handleEditEntry(id) {
+    const entry = entries.find(e => e.id === id);
+
+    if (entry) {
+        const entryDiv = document.querySelector(`.entry-content[data-id='${id}']`);
+        const actionsDiv = document.querySelector(`.entry-actions[data-id='${id}']`);
+        entryDiv.innerHTML = `<textarea class="edit-input">${entry.content}</textarea>`;
+        actionsDiv.innerHTML = `
+            <span class="save-btn" data-id="${entry.id}" title="Save Changes">Save 💾</span>
+            <span class="cancel-btn" data-id="${entry.id}" title="Cancel">Delete ❌</span>
+        `;
+        document.querySelector(`.save-btn[data-id='${id}']`).addEventListener('click', () => handleSaveEntry(id));
+        document.querySelector(`.cancel-btn[data-id='${id}']`).addEventListener('click', renderEntries);
+    }
+}
+
+function handleSaveEntry(id) {
+    const entry = entries.find(e => e.id === id);
+    const newContent = document.querySelector(`.edit-input`).value.trim();
+
+    if (entry && newContent) {
+        entry.content = newContent;
+        saveEntries();
+        renderEntries();
+    }
+}
+
 function renderEntries() {
     entriesList.innerHTML = '';
     let currentDate = '';
@@ -66,13 +93,18 @@ function renderEntries() {
         const li = document.createElement('li');
         li.className = 'entry';
         li.innerHTML = `
-            <div class="entry-content">${entry.content}</div>
-            <div class="entry-actions">
+            <div class="entry-content" data-id="${entry.id}">${entry.content}</div>
+            <div class="entry-actions" data-id="${entry.id}">
                 <span class="snapshot-btn" data-id="${entry.id}" title="Create Snapshot">📷</span>
+                <span class="edit-btn" data-id="${entry.id}" title="Edit Entry">✏️</span>  <!-- Edit button -->
                 <span class="delete-btn" data-id="${entry.id}" title="Delete Entry">🗑️</span>
             </div>
         `;
         entriesList.appendChild(li);
+
+        // Add event listeners for edit and delete buttons
+        document.querySelector(`.edit-btn[data-id='${entry.id}']`).addEventListener('click', () => handleEditEntry(entry.id));
+        document.querySelector(`.delete-btn[data-id='${entry.id}']`).addEventListener('click', () => deleteEntry(entry.id));
     });
 }
 
@@ -124,6 +156,7 @@ function createSnapshot(entry) {
     ctx.font = `${fontSize}px Arial`;
     ctx.fillText(entry.date, 30, 50);
 
+<<<<<<< HEAD
     ctx.fillStyle = '#ff0000'; // Set color for main content text
     const words = entry.content.split(' ');
     let line = '';
@@ -174,8 +207,30 @@ function createSnapshot(entry) {
         if (y > height - 60) {
             break; // Stop rendering if the text exceeds the canvas height
         }
+=======
+    ctx.fillStyle = '#ffff00';
+    ctx.font = '20px Arial';
+    const contentLines = entry.content.split("<br>");
+    let y = 80;
+    for(let contentLine of contentLines) {
+        const words = contentLine.split(' ');
+        let line = '';
+        for (let i = 0; i < words.length; i++) {
+            const testLine = line + words[i] + ' ';
+            const metrics = ctx.measureText(testLine);
+            if (metrics.width > width - 60 && i > 0) {
+                ctx.fillText(line, 30, y);
+                line = words[i] + ' ';
+                y += 30;
+            } else {
+                line = testLine;
+            }
+        }
+        ctx.fillText(line, 30, y);
+        y += 30;
+>>>>>>> upstream/main
     }
-    ctx.fillText(line, 30, y);
+
 
     // Add website name with glow effect
     ctx.fillStyle = '#000000'; // Black color for text
@@ -207,7 +262,7 @@ document.addEventListener("DOMContentLoaded", function() {
     // Validate the form on submission
     entryForm.addEventListener("submit", function(event) {
         const textContent = fakeTextarea.textContent.trim();
-        
+
         if (textContent === "") {
             errorMessage.style.display = "block"; // Show error message
             fakeTextarea.classList.add("error");
